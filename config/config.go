@@ -10,10 +10,11 @@ import (
 )
 
 type Config struct {
-	ServerPort  string
-	PostgresURI string
-	RedisURI    string
-	JWTSecret   string
+	ServerPort     string
+	PostgresURI    string
+	RedisURI       string
+	JWTSecret      string
+	ExpirationTime string
 }
 
 // With this we will acess the variables
@@ -28,10 +29,11 @@ func LoadConfig() {
 	}
 
 	AppConfig = &Config{
-		ServerPort:  getEnv("PORT", "8080"),
-		PostgresURI: getEnv("POSTGRES_URL", "postgres://healthuser:healthpassword@localhost:5432/healthcare?sslmode=disable"),
-		RedisURI:    getEnv("REDIS_URL", "localhost:6379"),
-		JWTSecret:   getEnv("JWT_SECRET", "thisismysecret123"),
+		ServerPort:     getEnv("PORT", "8080"),
+		PostgresURI:    getEnv("POSTGRES_URL", "postgres://healthuser:healthpassword@localhost:5432/healthcare?sslmode=disable"),
+		RedisURI:       getEnv("REDIS_URL", "localhost:6379"),
+		JWTSecret:      getEnv("JWT_SECRET", "thisismysecret123"),
+		ExpirationTime: getEnv("EXPIRATION_TIME", "24h"),
 	}
 	// slog.Info("Configuration file loaded successfully", "sucess")
 	log.Println("config file loaded sucessfully")
