@@ -30,24 +30,31 @@ A backend service for managing users, patients, authentication, and email proces
 
 ```
 .
-├── config/               # App configuration loader
+├── cmd/
+│   └── health-app/
+│       └── main.go       # Main entry point of the app
+├── config/               # App configuration loader (reads from .env + config)
 ├── internal/
-│   ├── auth/             # JWT middleware & role checks
-│   ├── handler/          # HTTP handlers
+│   ├── auth/             # JWT auth, middleware, role-based access
+│   ├── handler/          # HTTP handlers (Gin routes/controllers)
 │   ├── repository/
-│   │   └── db/           # DB access layer
-│   ├── service/          # Business logic
-│   └── worker/           # Background workers (email)
-├── Dockerfile            # Container configuration for app
-├── docker-compose.yml    # Orchestration of app, Redis, and PostgreSQL
-├── main.go               # Application entry point
+│   │   └── db/
+│   │       └── migration/ # SQL migration files
+│   ├── service/          # Business logic (user, patient services)
+│   └── worker/           # Background workers (email queue w/ Redis)
+├── Dockerfile            # Docker build config
+├── docker-compose.yml    # Runs health-app + Redis + PostgreSQL
+├── Makefile              # Task runner for migrations, build, docker, etc.
+├── go.mod
+├── go.sum
+
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-Configuration is loaded from environment variables, usually managed through Docker Compose. Example variables:
+Configuration is loaded from environment variables. Example variables:
 
 ```env
 POSTGRES_URI=postgres://user:password@db:5432/health_app?sslmode=disable
