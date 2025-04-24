@@ -5,7 +5,9 @@ import (
 
 	"github.com/abhiraj-ku/health_app/internal/auth"
 	"github.com/abhiraj-ku/health_app/internal/model"
+	"github.com/abhiraj-ku/health_app/internal/worker"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 type AuthService interface {
@@ -13,12 +15,14 @@ type AuthService interface {
 }
 
 type AuthHandler struct {
-	Service AuthService
+	Service     AuthService
+	RedisClient *redis.Client
 }
 
-func NewAuthHandler(s AuthService) *AuthHandler {
+func NewAuthHandler(s AuthService, redisClient *redis.Client) *AuthHandler {
 	return &AuthHandler{
-		Service: s,
+		Service:     s,
+		RedisClient: redisClient,
 	}
 }
 
@@ -47,5 +51,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Enqueue the email task to Redis
+	emailWorker := worker.NewEmailWorker(h.RedisClient) // Create new instance of email worker
+	emailWorker.EnqueueEmail(user)
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "user login sucess", "token": token, "data": user})
 }

@@ -11,9 +11,9 @@ const (
 )
 
 type User struct {
-	ID        int64     `json:"id" db:"id"`
-	Name      string    `json:"name" db:"name"`
-	Password  string    `json:"password" db:"password"`
+	ID        int64     `json:"id" db:"id" `
+	Name      string    `json:"name" db:"name" binding:"required,min=2,max=100"`
+	Password  string    `json:"-" db:"password" `
 	Role      Role      `json:"role" db:"role"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }

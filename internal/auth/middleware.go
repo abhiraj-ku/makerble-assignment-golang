@@ -28,7 +28,7 @@ func JWTMiddleware() gin.HandlerFunc {
 	}
 }
 
-func RoleAcessController(allowedRoles ...string) gin.HandlerFunc {
+func RequireRole(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, exist := c.Get("role")
 		if !exist {

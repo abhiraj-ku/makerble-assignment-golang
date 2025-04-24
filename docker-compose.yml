@@ -1,0 +1,43 @@
+services:
+  health-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_DB=healthcare
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=healthpassword
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "9090:9090"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - healthcare
+    restart: always
+
+  postgres:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: healthcare
+      POSTGRES_USER: healthuser
+      POSTGRES_PASSWORD: healthpassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthcare
+    restart: always
+
+  redis:
+    image: redis:latest
+    networks:
+      - healthcare
+    restart: always
+
+volumes:
+  postgres_data:
+
+networks:
+  healthcare:
+    driver: bridge
