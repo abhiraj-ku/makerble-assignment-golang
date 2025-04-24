@@ -1,1 +1,6 @@
 .env
+/bin
+
+/health-app
+.vscode/
+.DS_Store
