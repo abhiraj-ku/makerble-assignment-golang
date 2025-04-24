@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"time"
 
@@ -20,6 +21,7 @@ type Claims struct {
 
 func GenerateToken(UserID int64, Role string) (string, error) {
 	expirationTime, err := time.ParseDuration(config.AppConfig.ExpirationTime)
+	log.Println(expirationTime)
 	if err != nil {
 		slog.Error("failed to parse the expiration time from config", fmt.Sprint("error"), err)
 		return "", fmt.Errorf("error parsing expiration time from env: %v", err)
@@ -32,7 +34,8 @@ func GenerateToken(UserID int64, Role string) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(config.AppConfig.JWTSecret)
+	log.Println(token)
+	return token.SignedString([]byte(config.AppConfig.JWTSecret))
 }
 
 func ValidateToken(tokenString string) (*Claims, error) {

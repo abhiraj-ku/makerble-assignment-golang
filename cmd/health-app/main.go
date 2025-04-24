@@ -14,23 +14,29 @@ import (
 	"github.com/abhiraj-ku/health_app/internal/handler"
 	postresdb "github.com/abhiraj-ku/health_app/internal/repository/db"
 	"github.com/abhiraj-ku/health_app/internal/service"
-	"github.com/abhiraj-ku/health_app/internal/worker"
+
+	// "github.com/abhiraj-ku/health_app/internal/worker"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode) // disables debug route/mode logs
+}
 func main() {
 	config.LoadConfig()
 	db, err := sql.Open("postgres", config.AppConfig.PostgresURI)
 	if err != nil {
 		log.Fatalf("failed to connect to db: %v", err)
 	}
+	log.Println(" Connected to PostgreSQL")
 
 	// Connect to Redis
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 	})
+	log.Println(" Connected to Redis")
 
 	//  Initialize user's repository,services and handlers
 	userRepo := postresdb.NewUserRepo(db)
@@ -44,15 +50,21 @@ func main() {
 	patientHandler := handler.NewPatientHandler(patientService)
 
 	// Initialize the email worker
-	emailWorker := worker.NewEmailWorker(redisClient)
-	go emailWorker.ProcessEmailQueue() // Start background worker for email queue
+	// emailWorker := worker.NewEmailWorker(redisClient)
+	// go emailWorker.ProcessEmailQueue() // Start background worker for email queue
 
-	router := gin.Default()
+	router := gin.New()
+	// router.Use(gin.Logger())
+	router.POST("/register", authHandler.Register)
 	router.POST("/login", authHandler.Login)
 
 	// Patient routes (RBAC controlled)
 	patientHandler.RegisterRoutes(router, auth.JWTMiddleware(), auth.RequireRole)
 
+	// Welcome message on home route
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"message": "Welcome to health app"})
+	})
 	// Check health of server
 	router.GET("/ping", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"message": "pong"})
@@ -64,17 +76,17 @@ func main() {
 		Handler: router,
 	}
 
-	// Channel to listen for termination signals
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
-
+	log.Printf("server is up and running on the port: %v", config.AppConfig.ServerPort)
 	// Run the server in a goroutine
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
-		log.Printf("server is up and running on the port: %v", config.AppConfig.ServerPort)
 	}()
+
+	// Channel to listen for termination signals
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
 
 	// Wait for an interrupt signal
 	<-stop

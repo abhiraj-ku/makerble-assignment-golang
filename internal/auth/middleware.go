@@ -30,7 +30,7 @@ func JWTMiddleware() gin.HandlerFunc {
 
 func RequireRole(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		role, exist := c.Get("role")
+		role, exist := c.Get("Role")
 		if !exist {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "role not found"})
 			return

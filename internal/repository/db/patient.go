@@ -70,8 +70,7 @@ func (r *Patient) GetAll() ([]model.Patient, error) {
 }
 
 func (r *Patient) Update(p *model.Patient) error {
-	query := ` update patients set
-	update patients set 
+	query := ` update patients set 
 			name = $1, 
 			age = $2, 
 			gender = $3, 

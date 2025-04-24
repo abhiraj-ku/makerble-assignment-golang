@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -31,14 +32,20 @@ func NewPatientHandler(s PatientService) *PatientHandler {
 func (h *PatientHandler) RegisterRoutes(r *gin.Engine, authMiddleware gin.HandlerFunc, requireRole func(...string) gin.HandlerFunc) {
 	patients := r.Group("/patients", authMiddleware)
 	{
+		// Receptionist routes
 		patients.POST("", requireRole("receptionist"), h.Create)
+		patients.GET("", requireRole("receptionist"), h.GetAll)
+		patients.DELETE("/:id", requireRole("receptionist"), h.Delete)
+
+		// Shared update route (both receptionist and doctor can update)
+		patients.PUT("/:id", requireRole("receptionist", "doctor"), h.Update)
 	}
 }
 
 func (h *PatientHandler) Create(c *gin.Context) {
-	var p model.Patient
+	var patientRecord model.Patient
 
-	if err := c.ShouldBindJSON(&p); err != nil {
+	if err := c.ShouldBindJSON(&patientRecord); err != nil {
 		if validationError, ok := err.(validator.ValidationErrors); ok {
 
 			errors := make(map[string]string)
@@ -55,12 +62,17 @@ func (h *PatientHandler) Create(c *gin.Context) {
 	}
 
 	userID := c.GetInt64("userID")
-	p.UpdatedBy = userID
+	patientRecord.UpdatedBy = userID
 
-	if err := h.Service.Create(&p); err != nil {
+	if err := h.Service.Create(&patientRecord); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create the user record"})
 		return
 	}
+	c.JSON(http.StatusCreated, gin.H{
+		"success": true,
+		"message": "user registered successfully",
+		"data":    patientRecord,
+	})
 
 }
 func (h *PatientHandler) GetAll(c *gin.Context) {
@@ -69,23 +81,36 @@ func (h *PatientHandler) GetAll(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get patients"})
 		return
 	}
-	c.JSON(http.StatusOK, patients)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Fetched all patient record successfully",
+		"data":    patients,
+	})
+
 }
 
 func (h *PatientHandler) Update(c *gin.Context) {
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-	var p model.Patient
-	if err := c.ShouldBindJSON(&p); err != nil {
+	log.Println(id)
+	var patientRecord model.Patient
+	if err := c.ShouldBindJSON(&patientRecord); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
 		return
 	}
-	p.ID = id
-	p.UpdatedBy = c.GetInt64("userID")
-	if err := h.Service.Update(&p); err != nil {
+	patientRecord.ID = id
+	patientRecord.UpdatedBy = c.GetInt64("userID")
+	log.Println(c.Get("userID"))
+	log.Println(h.Service.Update(&patientRecord))
+	if err := h.Service.Update(&patientRecord); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "update failed"})
 		return
 	}
-	c.JSON(http.StatusOK, p)
+	c.JSON(http.StatusOK, gin.H{
+		"success":    true,
+		"message":    "patient record updated successfully",
+		"updated_by": patientRecord.UpdatedBy,
+		"data":       patientRecord,
+	})
 }
 
 func (h *PatientHandler) Delete(c *gin.Context) {
@@ -95,4 +120,9 @@ func (h *PatientHandler) Delete(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusNoContent, gin.H{
+		"success": true,
+		"message": "patient record deleted successfully",
+		"data":    "",
+	})
 }

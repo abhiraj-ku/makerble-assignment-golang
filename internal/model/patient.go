@@ -5,7 +5,7 @@ import "time"
 type Patient struct {
 	ID              int64     `json:"id" db:"id"`
 	Name            string    `json:"name" db:"name" binding:"required,min=2,max=100"`
-	Age             int       `json:"age ,required" db:"age" binding:"required,min=0,max=110" `
+	Age             int       `json:"age" db:"age" binding:"required,min=0,max=110" `
 	Gender          string    `json:"gender" db:"gender" binding:"required,oneof=male female other"`
 	Contact         string    `json:"contact" db:"contact" binding:"required"`
 	Address         string    `json:"address" db:"address" binding:"required"`
