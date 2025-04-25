@@ -34,9 +34,10 @@ func (h *PatientHandler) RegisterRoutes(r *gin.Engine, authMiddleware gin.Handle
 	{
 		// Receptionist routes
 		patients.POST("", requireRole("receptionist"), h.Create)
-		patients.GET("", requireRole("receptionist"), h.GetAll)
 		patients.DELETE("/:id", requireRole("receptionist"), h.Delete)
 
+		// Both Parties can view patients details
+		patients.GET("", requireRole("receptionist", "doctor"), h.GetAll)
 		// Shared update route (both receptionist and doctor can update)
 		patients.PUT("/:id", requireRole("receptionist", "doctor"), h.Update)
 	}
@@ -115,6 +116,7 @@ func (h *PatientHandler) Update(c *gin.Context) {
 
 func (h *PatientHandler) Delete(c *gin.Context) {
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+	log.Println(id)
 	if err := h.Service.Delete(id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "delete failed"})
 		return

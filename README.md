@@ -4,6 +4,14 @@ A backend service for managing users, patients, authentication, and email proces
 
 ---
 
+## Docs
+
+- visit postman:
+  `
+  [API DOCS](https://www.postman.com/avionics-observer-95084295/heathcare/documentation/ugx4qsc/health-app-testing)
+
+## `
+
 ## 🚀 Features
 
 - **User Authentication** with JWT

@@ -53,7 +53,7 @@ func (r *Patient) GetAll() ([]model.Patient, error) {
 	var patients []model.Patient
 	for rows.Next() {
 		var p model.Patient
-		err := rows.Scan(&p.Name, &p.Age, &p.Gender, &p.Contact, &p.Address,
+		err := rows.Scan(&p.ID, &p.Name, &p.Age, &p.Gender, &p.Contact, &p.Address,
 			&p.Disease, &p.HandledByDoctor, &p.UpdatedBy, &p.UpdatedAt, &p.CreatedAt,
 		)
 		if err != nil {
@@ -108,7 +108,7 @@ func (r *Patient) GetById(id int64) (*model.Patient, error) {
 
 	var p model.Patient
 
-	err := r.db.QueryRow(query).Scan(
+	err := r.db.QueryRow(query, id).Scan(
 		&p.ID, &p.Name, &p.Age, &p.Gender, &p.Contact, &p.Address,
 		&p.Disease, &p.HandledByDoctor, &p.UpdatedBy, &p.UpdatedAt, &p.CreatedAt,
 	)
